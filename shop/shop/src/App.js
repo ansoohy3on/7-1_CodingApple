@@ -64,7 +64,9 @@ function About() {
 function Card(props) {
   return (
     <Col sm>
-      <img src={'https://codingapple1.github.io/shop/shoes' + (props.i + 1) + '.jpg'} width='80%' />
+      <Link to={"/detail/"+(props.i)}>
+        <img src={'https://codingapple1.github.io/shop/shoes' + (props.i + 1) + '.jpg'} width='80%' />
+      </Link>
       <h4>{props.shoes.title}</h4>
       <p>{props.shoes.content}</p>
       <p>{props.shoes.price}</p>
