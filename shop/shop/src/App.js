@@ -1,14 +1,19 @@
 import './App.css';
 import { Navbar, Container, Nav, Row, Col } from 'react-bootstrap';
-import { useState } from 'react';
+import { createContext, useState } from 'react';
 import data from './data.js';
 import { Route, Routes, Link, useNavigate, Outlet } from 'react-router-dom';
 import Detail from './routes/Detail.js';
 import axios from 'axios';
 
+export let Context1 = createContext(); /* context 하나 만들기(state 보관함) */
+
+
 function App() {
 
   let [shoes, setShoes] = useState(data);
+  let [재고] = useState([10,11,12]);
+
   let navigate = useNavigate();
 
   return (
@@ -42,12 +47,11 @@ function App() {
           </>
         } />
 
-        <Route path='/detail/:id' element={<Detail shoes={shoes} />} />
-
-        <Route path='/about' element={<About />}>
-          <Route path='member' element={<div>회사 직원 정보</div>}></Route>
-          <Route path='location' element={<div>회사 위치 정보</div>}></Route>
-        </Route>
+        <Route path='/detail/:id' element={
+          <Context1.Provider value={{재고, shoes}}>
+            <Detail shoes={shoes} />
+          </Context1.Provider>
+        } />
       </Routes>
 
       <button onClick={()=>{
