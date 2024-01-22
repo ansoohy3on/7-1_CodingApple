@@ -1,10 +1,11 @@
 import './App.css';
 import { Navbar, Container, Nav, Row, Col } from 'react-bootstrap';
-import { createContext, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import data from './data.js';
 import { Route, Routes, Link, useNavigate, Outlet } from 'react-router-dom';
 import Detail from './routes/Detail.js';
 import axios from 'axios';
+import Cart from './routes/Cart.js';
 
 export let Context1 = createContext(); /* context 하나 만들기(state 보관함) */
 
@@ -13,8 +14,16 @@ function App() {
 
   let [shoes, setShoes] = useState(data);
   let [재고] = useState([10,11,12]);
-
   let navigate = useNavigate();
+
+  useEffect(()=>{
+    let arr = [];
+
+    /* 배열이 비어 있을 경우에만 초기화 */
+    if(arr.length === 0){
+      localStorage.setItem('watched', JSON.stringify(arr)) /* array 생성 */
+    }
+  },[])
 
   return (
     <div className="App">
@@ -44,6 +53,16 @@ function App() {
                 }
               </Row>
             </Container>
+
+            <button onClick={()=>{
+              axios.get('https://codingapple1.github.io/shop/data2.json')
+              .then((result)=>{
+                console.log(result.data)
+                console.log(shoes)
+                let copy = [...shoes, ...result.data];
+                setShoes(copy);
+              })
+            }}>더보기</button>
           </>
         } />
 
@@ -52,17 +71,12 @@ function App() {
             <Detail shoes={shoes} />
           </Context1.Provider>
         } />
+
+        <Route path='/cart' element={<Cart/>} />
+
       </Routes>
 
-      <button onClick={()=>{
-        axios.get('https://codingapple1.github.io/shop/data2.json')
-        .then((result)=>{
-          console.log(result.data)
-          console.log(shoes)
-          let copy = [...shoes, ...result.data];
-          setShoes(copy);
-        })
-      }}>더보기</button>
+
 
     </div>
   );
