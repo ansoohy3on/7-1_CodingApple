@@ -1,20 +1,31 @@
 import './App.css';
 import { Navbar, Container, Nav, Row, Col } from 'react-bootstrap';
-import { createContext, useEffect, useState } from 'react';
+import { createContext, lazy, useEffect, useState, Suspense } from 'react';
 import data from './data.js';
 import { Route, Routes, Link, useNavigate, Outlet } from 'react-router-dom';
-import Detail from './routes/Detail.js';
 import axios from 'axios';
-import Cart from './routes/Cart.js';
+import { useQuery } from 'react-query';
 
 export let Context1 = createContext(); /* context 하나 만들기(state 보관함) */
 
+// import Detail from './routes/Detail.js';
+// import Cart from './routes/Cart.js';
+
+const Detail = lazy(() => import('./routes/Detail.js'));
+const Cart = lazy(() => import('./routes/Cart.js'));
 
 function App() {
 
   let [shoes, setShoes] = useState(data);
   let [재고] = useState([10,11,12]);
   let navigate = useNavigate();
+
+  let result = useQuery('작명', ()=>{
+    return axios.get('https://codingapple1.github.io/userdata.json').then((a)=>{
+      console.log('요청됨')
+      return a.data
+    })
+  })
 
   useEffect(()=>{
     let arr = [];
@@ -35,49 +46,53 @@ function App() {
             <Nav.Link onClick={() => { navigate('/') }}>Home</Nav.Link>
             <Nav.Link onClick={() => { navigate('/detail') }}>Detail</Nav.Link>
           </Nav>
+          <Nav className='ms-auto'>
+            { result.isLoading && '로딩 중..💭' } {/* 로딩 시 출력 */}
+            { result.error && '에러 😯' } {/* 실패 시 출력 */}
+            { result.data && ('반가워요, ' + result.data.name + ' 님!') } {/* 성공 시 출력 */}
+          </Nav>
         </Container>
       </Navbar>
 
-      <Routes>
-        <Route path='/' element={
-          <>
-            <div className='main-bg'></div>
-            <Container>
-              <Row>
-                {
-                  shoes.map((a, i) => {
-                    return (
-                      <Card shoes={shoes[i]} i={i} />
-                    )
-                  })
-                }
-              </Row>
-            </Container>
+      <Suspense fallback={<div>로딩 중..💭</div>}>
+        <Routes>
+          <Route path='/' element={
+            <>
+              <div className='main-bg'></div>
+              <Container>
+                <Row>
+                  {
+                    shoes.map((a, i) => {
+                      return (
+                        <Card shoes={shoes[i]} i={i} />
+                      )
+                    })
+                  }
+                </Row>
+              </Container>
 
-            <button onClick={()=>{
-              axios.get('https://codingapple1.github.io/shop/data2.json')
-              .then((result)=>{
-                console.log(result.data)
-                console.log(shoes)
-                let copy = [...shoes, ...result.data];
-                setShoes(copy);
-              })
-            }}>더보기</button>
-          </>
-        } />
+              <button onClick={()=>{
+                axios.get('https://codingapple1.github.io/shop/data2.json')
+                .then((result)=>{
+                  console.log(result.data)
+                  console.log(shoes)
+                  let copy = [...shoes, ...result.data];
+                  setShoes(copy);
+                })
+              }}>더보기</button>
+            </>
+          } />
 
-        <Route path='/detail/:id' element={
-          <Context1.Provider value={{재고, shoes}}>
-            <Detail shoes={shoes} />
-          </Context1.Provider>
-        } />
+          <Route path='/detail/:id' element={
+              <Context1.Provider value={{재고, shoes}}>
+                <Detail shoes={shoes} />
+              </Context1.Provider>
+          } />
 
-        <Route path='/cart' element={<Cart/>} />
+          <Route path='/cart' element={<Cart/>} />
 
-      </Routes>
-
-
-
+        </Routes>
+      </Suspense>
     </div>
   );
 }
